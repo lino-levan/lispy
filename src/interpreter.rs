@@ -50,7 +50,10 @@ fn evaluate(ast: Ast) -> Ast {
                         match operand {
                             Ast::Number(number) => print!("{}", number),
                             Ast::String(string) => print!("{}", string),
-                            _ => panic!("Expected number or string"),
+                            Ast::Symbol(symbol) => print!("{}", symbol),
+                            Ast::Boolean(boolean) => print!("{}", boolean),
+                            Ast::None => print!("None"),
+                            _ => panic!("Expected numnber, string, symbol, or none"),
                         }
                     }
                     println!();

@@ -6,6 +6,7 @@ use crate::tokenizer::Token;
 pub enum Ast {
     None,
     Number(f64),
+    Boolean(bool),
     String(String),
     Symbol(String),
     Operation {
@@ -33,6 +34,7 @@ fn parse(tokens: &mut dyn PeekableIterator<Item = &Token>) -> Ast {
         Token::Number(number) => Ast::Number(number.clone()),
         Token::String(string) => Ast::String(string.clone()),
         Token::Symbol(symbol) => Ast::Symbol(symbol.clone()),
+        Token::Boolean(boolean) => Ast::Boolean(boolean.clone()),
         Token::CloseParenthesis => {
             panic!("Unexpected close parenthesis")
         }

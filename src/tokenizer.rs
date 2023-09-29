@@ -4,6 +4,7 @@ pub enum Token {
     CloseParenthesis,
     Symbol(String),
     String(String),
+    Boolean(bool),
     Number(f64),
 }
 
@@ -77,7 +78,11 @@ pub fn tokenize(input: String) -> Vec<Token> {
                     symbol.push(content.next().unwrap());
                 }
 
-                tokens.push(Token::Symbol(symbol));
+                match symbol.as_str() {
+                    "true" => tokens.push(Token::Boolean(true)),
+                    "false" => tokens.push(Token::Boolean(false)),
+                    _ => tokens.push(Token::Symbol(symbol)),
+                }
             }
         }
     }
