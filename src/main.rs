@@ -3,8 +3,10 @@ use std::io::{stdin, stdout, Write};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
+use glob::glob;
 
 mod ast;
+mod fmt;
 mod interpreter;
 mod tokenizer;
 
@@ -18,10 +20,15 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Run a lispy file
-    Run { file: PathBuf },
+    Run {
+        file: PathBuf,
+    },
 
     /// Run a lispy file
     Repl,
+
+    // Format all lispy files
+    Fmt,
 }
 
 fn main() {
@@ -55,6 +62,32 @@ fn main() {
                 }
 
                 input.clear();
+            }
+        }
+        Some(Commands::Fmt) => {
+            for entry in glob("**/*.l").expect("Failed to read glob pattern") {
+                match entry {
+                    Ok(path) => {
+                        println!("[fmt] {}", path.display());
+                        let contents = fs::read_to_string(path.clone())
+                            .expect("Should have been able to read the file");
+                        let tokens = tokenizer::tokenize(contents);
+                        let tree = ast::generate(&tokens);
+
+                        let mut result = String::new();
+
+                        for ast in tree {
+                            result.push_str(fmt::format(ast).as_str());
+                            result.push('\n');
+                        }
+
+                        match fs::write(path.clone(), result) {
+                            Ok(_) => {}
+                            Err(e) => println!("{:?}", e),
+                        }
+                    }
+                    Err(e) => println!("{:?}", e),
+                }
             }
         }
         None => {}
