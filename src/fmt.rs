@@ -7,6 +7,20 @@ fn format_part(ast: Ast, depth: usize) -> String {
         Ast::Symbol(symbol) => symbol,
         Ast::Boolean(boolean) => boolean.to_string(),
         Ast::None => "None".to_string(),
+        Ast::List(list) => {
+            let mut result = String::new();
+
+            result.push_str("(list");
+
+            for item in list {
+                result.push_str(" ");
+                result.push_str(format_part(item, depth + 1).as_str());
+            }
+
+            result.push_str(")");
+
+            result
+        }
         Ast::Operation { operator, operands } => {
             let mut inline_result = String::new();
             let mut multiline_result = String::new();

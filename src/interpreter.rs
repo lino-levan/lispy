@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::ast::Ast;
 
 pub struct State {
@@ -27,7 +29,7 @@ impl State {
     }
 }
 
-fn evaluate(ast: Ast, state: &mut State) -> Ast {
+pub fn evaluate(ast: Ast, state: &mut State) -> Result<Ast, Box<dyn Error>> {
     match ast {
         Ast::Operation { operator, operands } => {
             match operator.as_str() {
@@ -39,14 +41,16 @@ fn evaluate(ast: Ast, state: &mut State) -> Ast {
 
                     for operand in operands {
                         match is_string {
-                            true => match evaluate(operand, state) {
+                            true => match evaluate(operand, state)? {
                                 Ast::Number(number) => {
                                     string_result.push_str(number.to_string().as_str())
                                 }
                                 Ast::String(string) => string_result.push_str(string.as_str()),
-                                _ => panic!("Expected number"),
+                                _ => {
+                                    return Err("Unexpected type as input to +".into());
+                                }
                             },
-                            false => match evaluate(operand, state) {
+                            false => match evaluate(operand, state)? {
                                 Ast::Number(number) => {
                                     numbered = true;
                                     num_result += number
@@ -58,92 +62,84 @@ fn evaluate(ast: Ast, state: &mut State) -> Ast {
                                     }
                                     string_result.push_str(string.as_str());
                                 }
-                                _ => panic!("Expected number"),
+                                _ => {
+                                    return Err("Unexpected type as input to +".into());
+                                }
                             },
                         }
                     }
 
                     match is_string {
-                        true => Ast::String(string_result),
-                        false => Ast::Number(num_result),
+                        true => Ok(Ast::String(string_result)),
+                        false => Ok(Ast::Number(num_result)),
                     }
                 }
                 "<" => {
                     if operands.len() == 0 {
-                        return Ast::Boolean(true);
+                        return Ok(Ast::Boolean(true));
                     }
 
-                    let mut last_number = match evaluate(operands[0].clone(), state) {
-                        Ast::Number(number) => number,
-                        _ => panic!("Expected number"),
-                    };
+                    let mut last_number = match evaluate(operands[0].clone(), state)? {
+                        Ast::Number(number) => Ok(number),
+                        _ => Err("Expected number"),
+                    }?;
 
                     for operand in operands[1..].iter() {
-                        let number = match evaluate(operand.clone(), state) {
-                            Ast::Number(number) => number,
-                            _ => panic!("Expected number"),
-                        };
+                        let number = match evaluate(operand.clone(), state)? {
+                            Ast::Number(number) => Ok(number),
+                            _ => Err("Expected number"),
+                        }?;
 
                         if number <= last_number {
-                            return Ast::Boolean(false);
+                            return Ok(Ast::Boolean(false));
                         }
 
                         last_number = number;
                     }
 
-                    Ast::Boolean(true)
+                    Ok(Ast::Boolean(true))
                 }
                 "while" => {
                     let condition = operands[0].clone();
 
                     loop {
-                        match evaluate(condition.clone(), state) {
+                        match evaluate(condition.clone(), state)? {
                             Ast::Boolean(false) => break,
                             _ => (),
                         }
 
                         for operand in operands[1..].iter() {
-                            evaluate(operand.clone(), state);
+                            evaluate(operand.clone(), state)?;
                         }
                     }
 
-                    Ast::None
+                    Ok(Ast::None)
                 }
                 "print" => {
                     for operand in operands {
-                        match evaluate(operand, state) {
-                            Ast::Number(number) => print!("{}", number),
-                            Ast::String(string) => print!("{}", string),
-                            Ast::Boolean(boolean) => print!("{}", boolean),
-                            Ast::None => print!("None"),
-                            _ => panic!("Expected numnber, string, or none"),
-                        }
+                        evaluate(operand, state)?.print();
                     }
                     println!();
 
-                    Ast::None
+                    Ok(Ast::None)
                 }
                 "var" => {
                     // TODO: consider allowing strings as variable names
                     let symbol = match operands[0].clone() {
-                        Ast::Symbol(symbol) => symbol,
-                        _ => panic!("Expected symbol"),
-                    };
+                        Ast::Symbol(symbol) => Ok(symbol),
+                        _ => Err("Expected symbol"),
+                    }?;
 
-                    let value = evaluate(operands[1].clone(), state);
+                    let value = evaluate(operands[1].clone(), state)?;
 
                     state.set(symbol, value.clone());
 
-                    value
+                    Ok(value)
                 }
-                _ => panic!("Unknown operator {}", operator),
+                _ => Err(format!("Unknown operator {}", operator).into()),
             }
         }
-        Ast::Symbol(symbol) => state.get(&symbol),
-        _ => ast,
+        Ast::Symbol(symbol) => Ok(state.get(&symbol)),
+        _ => Ok(ast),
     }
-}
-
-pub fn run(ast: Ast, state: &mut State) {
-    evaluate(ast, state);
 }

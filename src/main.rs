@@ -9,6 +9,7 @@ mod ast;
 mod fmt;
 mod interpreter;
 mod tokenizer;
+mod util;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
@@ -38,13 +39,13 @@ fn main() {
         Some(Commands::Run { file }) => {
             let contents =
                 fs::read_to_string(file).expect("Should have been able to read the file");
-            let tokens = tokenizer::tokenize(&contents);
-            let tree = ast::generate(&tokens);
+            let tokens = tokenizer::tokenize(&contents).unwrap();
+            let tree = ast::generate(&tokens).unwrap();
 
             let mut state = interpreter::State::new();
 
             for ast in tree {
-                interpreter::run(ast, &mut state);
+                interpreter::evaluate(ast, &mut state).unwrap();
             }
         }
         Some(Commands::Repl) => {
@@ -57,15 +58,14 @@ fn main() {
 
                 stdin().read_line(&mut input).expect("Failed to read line");
 
-                let tokens = tokenizer::tokenize(&input);
-                let tree = ast::generate(&tokens);
+                let tokens = tokenizer::tokenize(&input).unwrap();
+                let tree = ast::generate(&tokens).unwrap();
 
-                let print = ast::Ast::Operation {
-                    operator: "print".to_string(),
-                    operands: tree,
-                };
+                for ast in tree {
+                    interpreter::evaluate(ast, &mut state).unwrap().print();
+                }
 
-                interpreter::run(print, &mut state);
+                println!();
 
                 input.clear();
             }
@@ -76,8 +76,8 @@ fn main() {
                     Ok(path) => {
                         let contents = fs::read_to_string(path.clone())
                             .expect("Should have been able to read the file");
-                        let tokens = tokenizer::tokenize(&contents);
-                        let tree = ast::generate(&tokens);
+                        let tokens = tokenizer::tokenize(&contents).unwrap();
+                        let tree = ast::generate(&tokens).unwrap();
 
                         let mut result = String::new();
 

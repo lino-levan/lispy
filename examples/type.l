@@ -13,3 +13,8 @@
 	"the return type of print is "
 	(print)
 )
+(var x (list 1 2 3))
+(print
+	"the following is a list of numbers "
+	x
+)

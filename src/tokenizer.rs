@@ -1,3 +1,5 @@
+use std::error::Error;
+
 #[derive(Debug, Clone)]
 pub enum Token {
     OpenParenthesis,
@@ -8,7 +10,7 @@ pub enum Token {
     Number(f64),
 }
 
-pub fn tokenize(input: &String) -> Vec<Token> {
+pub fn tokenize(input: &String) -> Result<Vec<Token>, Box<dyn Error>> {
     let mut content = input.chars().peekable();
     let mut tokens = Vec::new();
 
@@ -56,10 +58,7 @@ pub fn tokenize(input: &String) -> Vec<Token> {
                     number.push(content.next().unwrap());
                 }
 
-                // TODO: fix this
-                tokens.push(Token::Number(
-                    number.parse::<f64>().expect("Should be a number"),
-                ));
+                tokens.push(Token::Number(number.parse::<f64>()?));
             }
             _ => {
                 let mut symbol = String::new();
@@ -87,5 +86,5 @@ pub fn tokenize(input: &String) -> Vec<Token> {
         }
     }
 
-    tokens
+    Ok(tokens)
 }
