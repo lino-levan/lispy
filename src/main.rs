@@ -60,9 +60,12 @@ fn main() {
                 let tokens = tokenizer::tokenize(&input);
                 let tree = ast::generate(&tokens);
 
-                for ast in tree {
-                    interpreter::run(ast, &mut state);
-                }
+                let print = ast::Ast::Operation {
+                    operator: "print".to_string(),
+                    operands: tree,
+                };
+
+                interpreter::run(print, &mut state);
 
                 input.clear();
             }
