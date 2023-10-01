@@ -38,15 +38,18 @@ fn main() {
         Some(Commands::Run { file }) => {
             let contents =
                 fs::read_to_string(file).expect("Should have been able to read the file");
-            let tokens = tokenizer::tokenize(contents);
+            let tokens = tokenizer::tokenize(&contents);
             let tree = ast::generate(&tokens);
 
+            let mut state = interpreter::State::new();
+
             for ast in tree {
-                interpreter::run(ast);
+                interpreter::run(ast, &mut state);
             }
         }
         Some(Commands::Repl) => {
             let mut input = String::new();
+            let mut state = interpreter::State::new();
 
             loop {
                 print!("lispy> ");
@@ -54,11 +57,11 @@ fn main() {
 
                 stdin().read_line(&mut input).expect("Failed to read line");
 
-                let tokens = tokenizer::tokenize(input.clone());
+                let tokens = tokenizer::tokenize(&input);
                 let tree = ast::generate(&tokens);
 
                 for ast in tree {
-                    interpreter::run(ast);
+                    interpreter::run(ast, &mut state);
                 }
 
                 input.clear();
@@ -68,10 +71,9 @@ fn main() {
             for entry in glob("**/*.l").expect("Failed to read glob pattern") {
                 match entry {
                     Ok(path) => {
-                        println!("[fmt] {}", path.display());
                         let contents = fs::read_to_string(path.clone())
                             .expect("Should have been able to read the file");
-                        let tokens = tokenizer::tokenize(contents);
+                        let tokens = tokenizer::tokenize(&contents);
                         let tree = ast::generate(&tokens);
 
                         let mut result = String::new();
@@ -80,6 +82,12 @@ fn main() {
                             result.push_str(fmt::format(ast).as_str());
                             result.push('\n');
                         }
+
+                        if contents == result {
+                            continue;
+                        }
+
+                        println!("[fmt] {}", path.display());
 
                         match fs::write(path.clone(), result) {
                             Ok(_) => {}

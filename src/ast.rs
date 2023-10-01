@@ -2,7 +2,7 @@ use std::iter::Iterator;
 
 use crate::tokenizer::Token;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Ast {
     None,
     Number(f64),

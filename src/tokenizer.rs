@@ -8,7 +8,7 @@ pub enum Token {
     Number(f64),
 }
 
-pub fn tokenize(input: String) -> Vec<Token> {
+pub fn tokenize(input: &String) -> Vec<Token> {
     let mut content = input.chars().peekable();
     let mut tokens = Vec::new();
 

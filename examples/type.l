@@ -11,5 +11,5 @@
 )
 (print
 	"the return type of print is "
-	(print "")
+	(print)
 )
