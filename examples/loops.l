@@ -1,6 +1,15 @@
 (var x 0)
 (while
 	(< x 10)
-	(print x)
+	(print "[count] " x)
 	(var x (+ x 1))
+)
+(var first 0)
+(var second 1)
+(while
+	(< first 610)
+	(print "[fib] " first)
+	(var temp (+ first second))
+	(var first second)
+	(var second temp)
 )
