@@ -68,6 +68,47 @@ fn evaluate(ast: Ast, state: &mut State) -> Ast {
                         false => Ast::Number(num_result),
                     }
                 }
+                "<" => {
+                    if operands.len() == 0 {
+                        return Ast::Boolean(true);
+                    }
+
+                    let mut last_number = match evaluate(operands[0].clone(), state) {
+                        Ast::Number(number) => number,
+                        _ => panic!("Expected number"),
+                    };
+
+                    for operand in operands[1..].iter() {
+                        let number = match evaluate(operand.clone(), state) {
+                            Ast::Number(number) => number,
+                            _ => panic!("Expected number"),
+                        };
+
+                        if number <= last_number {
+                            return Ast::Boolean(false);
+                        }
+
+                        last_number = number;
+                    }
+
+                    Ast::Boolean(true)
+                }
+                "while" => {
+                    let condition = operands[0].clone();
+
+                    loop {
+                        match evaluate(condition.clone(), state) {
+                            Ast::Boolean(false) => break,
+                            _ => (),
+                        }
+
+                        for operand in operands[1..].iter() {
+                            evaluate(operand.clone(), state);
+                        }
+                    }
+
+                    Ast::None
+                }
                 "print" => {
                     for operand in operands {
                         match evaluate(operand, state) {
