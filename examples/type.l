@@ -18,3 +18,9 @@
 	"the following is a list of numbers "
 	x
 )
+(print
+	"the first element of the list is "
+	(x 0)
+	" and the last is "
+	(x 2)
+)

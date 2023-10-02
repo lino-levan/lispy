@@ -136,6 +136,64 @@ pub fn evaluate(ast: Ast, state: &mut State) -> Result<Ast, Box<dyn Error>> {
 
                     Ok(value)
                 }
+                operator if state.get(&operator.to_string()) != Ast::None => {
+                    match state.get(&operator.to_string()) {
+                        Ast::List(list) => {
+                            if operands.len() > 1 {
+                                return Err(
+                                    format!("Expected 1 operand, got {}", operands.len()).into()
+                                );
+                            }
+
+                            let index = operands.get(0).unwrap();
+
+                            match index {
+                                Ast::Number(number) => {
+                                    let raw_index = *number;
+
+                                    if raw_index.fract() != 0.0 {
+                                        return Err(format!(
+                                            "Expected integer index, got {}",
+                                            raw_index
+                                        )
+                                        .into());
+                                    }
+
+                                    if raw_index < 0.0 {
+                                        return Err(format!(
+                                            "Expected positive index, got {}",
+                                            raw_index
+                                        )
+                                        .into());
+                                    }
+
+                                    let index = raw_index as usize;
+
+                                    if index >= list.len() {
+                                        return Err(format!(
+                                            "Index {} out of bounds for list of length {}",
+                                            number,
+                                            list.len()
+                                        )
+                                        .into());
+                                    }
+
+                                    Ok(list.get(index).unwrap().clone())
+                                }
+                                _ => Err(format!(
+                                    "Expected number as argument to list, got {:?}",
+                                    index
+                                )
+                                .into()),
+                            }
+                        }
+                        _ => Err(format!(
+                            "Expected function, list, or object, got {:?}",
+                            state.get(&operator.to_string())
+                        )
+                        .into()),
+                    }
+                }
                 _ => Err(format!("Unknown operator {}", operator).into()),
             }
         }
