@@ -13,7 +13,7 @@ pub enum Ast {
     Symbol(String),
     List(Vec<Ast>),
     Operation {
-        operator: String,
+        operator: Box<Ast>,
         operands: Vec<Ast>,
     },
 }
@@ -52,12 +52,8 @@ fn parse(tokens: &mut dyn PeekableIterator<Item = &Token>) -> Result<Ast, Box<dy
         Token::Boolean(boolean) => Ok(Ast::Boolean(boolean.clone())),
         Token::CloseParenthesis => Err("Unexpected close parenthesis".into()),
         Token::OpenParenthesis => {
-            let operator = match tokens.next() {
-                Some(Token::Symbol(symbol)) => Ok(symbol.clone()),
-                _ => Err("Expected symbol in first position of operation"),
-            }?;
-
-            let mut operands = Vec::new();
+            // contains the operator and the operands
+            let mut values = Vec::new();
 
             'operators: loop {
                 let token = *tokens.peek().unwrap();
@@ -68,17 +64,26 @@ fn parse(tokens: &mut dyn PeekableIterator<Item = &Token>) -> Result<Ast, Box<dy
                         break 'operators;
                     }
                     Token::OpenParenthesis => {
-                        operands.push(parse(tokens)?);
+                        values.push(parse(tokens)?);
                     }
                     _ => {
-                        operands.push(parse(tokens)?);
+                        values.push(parse(tokens)?);
                     }
                 }
             }
 
-            match operator.as_str() {
-                "list" => return Ok(Ast::List(operands)),
-                _ => Ok(Ast::Operation { operator, operands }),
+            if values.len() == 0 {
+                return Ok(Ast::None);
+            }
+
+            let operator = values.remove(0);
+
+            match operator {
+                Ast::Symbol(symbol) if symbol == "list" => return Ok(Ast::List(values)),
+                _ => Ok(Ast::Operation {
+                    operator: Box::new(operator),
+                    operands: values,
+                }),
             }
         }
     }

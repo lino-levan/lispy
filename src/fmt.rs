@@ -25,6 +25,8 @@ fn format_part(ast: Ast, depth: usize) -> String {
             let mut inline_result = String::new();
             let mut multiline_result = String::new();
 
+            let operator = format_part(*operator, depth + 1);
+
             inline_result.push_str("(");
             inline_result.push_str(operator.as_str());
 
