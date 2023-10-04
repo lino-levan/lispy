@@ -43,6 +43,9 @@ fn format_part(ast: Ast, depth: usize) -> String {
                     "while" if i == 0 => {
                         multiline_result.push_str(" ");
                     }
+                    "if" if i == 0 => {
+                        multiline_result.push_str(" ");
+                    }
                     "for" if i < 3 => {
                         multiline_result.push_str(" ");
                     }

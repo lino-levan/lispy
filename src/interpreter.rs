@@ -118,6 +118,25 @@ fn evaluate_operation(
 
                 Ok(Ast::None)
             }
+            "if" => {
+                match evaluate(operands[0].clone(), state)? {
+                    Ast::Boolean(false) if operands.len() == 3 => {
+                        evaluate(operands[2].clone(), state)?;
+                    }
+                    _ => {
+                        evaluate(operands[1].clone(), state)?;
+                    }
+                }
+
+                Ok(Ast::None)
+            }
+            "block" => {
+                for operand in operands.iter() {
+                    evaluate(operand.clone(), state)?;
+                }
+
+                Ok(Ast::None)
+            }
             "for" => {
                 // run the first operand once
                 evaluate(operands[0].clone(), state)?;

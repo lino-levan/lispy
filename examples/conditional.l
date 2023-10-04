@@ -1,0 +1,13 @@
+(var x 10)
+(if (< x 20)
+	(print "x is less than 20")
+	(print "x is greater than 20")
+)
+(if (< x 20)
+	(block
+		(print "x really is less than 20")
+		(print "this is quite sad")
+		(print "this is multiple lines")
+	)
+	(print "x is greater than 20")
+)
