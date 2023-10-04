@@ -33,14 +33,21 @@ fn format_part(ast: Ast, depth: usize) -> String {
             multiline_result.push_str("(");
             multiline_result.push_str(operator.as_str());
 
-            for operand in operands {
-                let result = format_part(operand, depth + 1);
+            for (i, operand) in operands.into_iter().enumerate() {
+                let result = format_part(operand.clone(), depth + 1);
 
                 inline_result.push_str(" ");
                 inline_result.push_str(result.as_str());
 
-                multiline_result.push_str("\n");
-                multiline_result.push_str("\t".repeat(depth + 1).as_str());
+                match operator.as_str() {
+                    "while" if i == 0 => {
+                        multiline_result.push_str(" ");
+                    }
+                    _ => {
+                        multiline_result.push_str("\n");
+                        multiline_result.push_str("\t".repeat(depth + 1).as_str());
+                    }
+                }
                 multiline_result.push_str(result.as_str());
             }
 
