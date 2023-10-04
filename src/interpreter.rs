@@ -118,6 +118,28 @@ fn evaluate_operation(
 
                 Ok(Ast::None)
             }
+            "for" => {
+                // run the first operand once
+                evaluate(operands[0].clone(), state)?;
+
+                let condition = operands[1].clone();
+                let increment = operands[2].clone();
+
+                loop {
+                    match evaluate(condition.clone(), state)? {
+                        Ast::Boolean(false) => break,
+                        _ => (),
+                    }
+
+                    for operand in operands[3..].iter() {
+                        evaluate(operand.clone(), state)?;
+                    }
+
+                    evaluate(increment.clone(), state)?;
+                }
+
+                Ok(Ast::None)
+            }
             "print" => {
                 for operand in operands {
                     evaluate(operand, state)?.print();

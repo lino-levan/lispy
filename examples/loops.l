@@ -11,3 +11,9 @@
 	(var first second)
 	(var second temp)
 )
+(for (var x 0) (< x 10) (var x (+ x 1))
+	(print
+		"hi for a for loop. we are at increment "
+		x
+	)
+)
